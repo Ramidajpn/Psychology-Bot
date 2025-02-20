@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Chatbot</title>
+</head>
+<body>
+    <h2>Upload PDF</h2>
+    <input type="file" id="pdfFile">
+    <button onclick="uploadFile()">Upload</button>
+    
+    <h2>Ask a Question</h2>
+    <input type="text" id="question" placeholder="Type your question">
+    <button onclick="askQuestion()">Ask</button>
+
+    <h3>Response:</h3>
+    <p id="response"></p>
+
+    <script>
+        let uploadedFilePath = "";
+
+        function uploadFile() {
+            let fileInput = document.getElementById("pdfFile");
+            let formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            fetch("/upload", { method: "POST", body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.file_path) {
+                        uploadedFilePath = data.file_path;
+                        alert("File uploaded successfully!");
+                    } else {
+                        alert("Error uploading file");
+                    }
+                });
+        }
+
+        function askQuestion() {
+            let question = document.getElementById("question").value;
+
+            if (!uploadedFilePath) {
+                alert("Please upload a PDF first!");
+                return;
+            }
+
+            fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: question, file_path: uploadedFilePath })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("response").innerText = data.response || "Error processing request";
+            });
+        }
+    </script>
+</body>
+</html>
